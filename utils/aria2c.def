@@ -1,0 +1,88 @@
+Bootstrap: localimage
+From: containers/ubuntu-{{ UBUNTU_VERSION }}.sif
+
+%arguments
+    ARIA2_VERSION=1.37.0
+    UBUNTU_VERSION=20.04
+
+%post
+    apt-get update && apt-get upgrade -y
+
+    apt-get install -y \
+        intltool \
+        libc-ares-dev \
+        libc-ares2 \
+        libcppunit-dev \
+        libexpat1-dev \
+        libgcrypt20 \
+        libgcrypt20-dev \
+        libgmp-dev \
+        libgmp10 \
+        libgnutls28-dev \
+        libgnutls30 \
+        libgpg-error-dev \
+        libnettle7 \
+        libsqlite3-dev \
+        libssh2-1 \
+        libssh2-1-dev \
+        libssl-dev \
+        libxml2 \
+        libxml2-dev \
+        nettle-dev \
+        sqlite3 \
+        zlib1g-dev
+
+    rm -rf /var/lib/apt/lists/*
+    apt-get clean
+
+    mkdir -p /opt/aria2/{{ ARIA2_VERSION }}
+    cd /opt/aria2/{{ ARIA2_VERSION }}
+
+    wget https://github.com/aria2/aria2/releases/download/release-{{ ARIA2_VERSION }}/aria2-{{ ARIA2_VERSION }}.tar.gz
+    tar xf aria2-{{ ARIA2_VERSION }}.tar.gz && \
+    rm -f aria2-{{ ARIA2_VERSION }}.tar.gz
+    
+    cd aria2-{{ ARIA2_VERSION }}
+    autoreconf -i
+    ./configure \
+        --prefix=/opt/aria2/{{ ARIA2_VERSION }} \
+        --with-bashcompletiondir=/opt/aria2/{{ ARIA2_VERSION }}/share/doc/aria2/bash_completion \
+        --disable-bittorrent \
+        --disable-metalink
+    make
+
+%runscript
+    echo "Aria2 is installed and ready to use."
+    exec /bin/bash "$@"
+
+%test
+    aria2c --version
+
+%labels
+    Author silvers@mpiib-berlin.mpg.de
+    Version v0.0.1
+    Description "Container with download utility aria2"
+
+%help
+    This is a container with download utility aria2.
+
+    The image can be built using
+    ```bash
+    module purge
+    module load apptainer/1.3.2
+
+    cd $GROUP_HOME
+    apptainer build \
+        --bind '/ptmp/thosi/apptainer-build:/tmp' \
+        --force \
+        --notest \
+        containers/aria2.sif \
+        tools/keylab-apptainer-definitions/utils/aria2c.def
+    ```
+
+    Notes
+    -----
+    - requires `apptainer>=1.3`
+    - reads environment variable `APPTAINERENV_TMPDIR`, which is set to `/tmp`
+    - the bootstrap image is a relative path (to `$GROUP_HOME`)
+    - all `aria2` dependencies are satisfied; not all are needed

@@ -1,0 +1,48 @@
+Bootstrap: docker
+From: mambaorg/micromamba:{{ VERSION }}
+
+%arguments
+    VERSION=1.5.8
+
+%files
+    env.yml /env.yml
+
+%environment
+    export PATH="${MAMBA_ROOT_PREFIX}/bin:$PATH"
+
+%post -c /bin/bash
+
+    micromamba install -y -n base -f /environment.yml
+    micromamba clean --all -y
+
+    # Test installation of micromamba
+    /usr/local/bin/_entrypoint.sh micromamba info
+    
+    # Test pip
+    /opt/conda/bin/pip --version
+
+%runscript
+    #!/bin/bash
+
+    source /usr/local/bin/_activate_current_env.sh
+    exec /usr/local/bin/_entrypoint.sh "$@"
+
+%test
+    pip --version
+
+%labels
+    Author thomas silvers
+    Version v0.0.1
+    Description "Example container with conda/mamba environment"
+
+%help
+    Example container with conda/mamba environment.
+    
+    This image can be built using
+    ```bash
+    module purge
+    module load apptainer
+
+    cd $GROUP_HOME/tools/keylab-apptainer-definitions/examples
+    apptainer build --notest ../../../containers/example-conda-env.sif conda-env.def
+    ```

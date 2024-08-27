@@ -1,0 +1,90 @@
+Bootstrap: docker
+From: ubuntu:{{ VERSION }}
+Stage: build
+
+%arguments
+    VERSION=20.04
+
+%environment
+    export LC_ALL=C
+    export TZ=Europe/Berlin
+
+%post    
+    export DEBIAN_FRONTEND=noninteractive
+    export DEBCONF_NONINTERACTIVE_SEEN=true
+
+    echo "tzdata tzdata/Areas select Europe" | debconf-set-selections
+    echo "tzdata tzdata/Zones/Europe select Berlin" | debconf-set-selections
+
+    apt-get update && apt-get -y upgrade
+    
+    apt-get install -y locales
+    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+    locale-gen en_US.UTF-8
+    update-locale LANG=en_US.UTF-8
+
+    apt-get install -y \
+        autoconf \
+        automake \
+        autotools-dev \
+        build-essential \
+        bzip2 \
+        ca-certificates \
+        gettext \
+        gettext-base \
+        git \
+        libglib2.0-0 \
+        libsm6 \
+        libtool \
+        libxext6 \
+        libxrender1 \
+        pkg-config \
+        wget
+    
+    rm -rf /var/lib/apt/lists/*
+    apt-get clean
+
+    NOW=`date`
+    echo "export NOW=\"${NOW}\"" >> $APPTAINER_ENVIRONMENT
+
+%runscript
+    echo "Container was created $NOW"
+    echo "Arguments received: $*"
+    exec /usr/bin/bash "$@"
+
+%test
+    grep -q NAME=\"Ubuntu\" /etc/os-release
+    if [ $? -eq 0 ]; then
+        echo "Container base is Ubuntu as expected."
+    else
+        echo "Container base is not Ubuntu."
+        exit 1
+    fi
+
+%labels
+    Author silvers@mpiib-berlin.mpg.de
+    Version v0.0.1
+
+%help
+    This is a base ubuntu container, used as a bootstrap image for other containers.
+
+    The image can be built using
+    ```bash
+    module purge
+    module load apptainer/1.3.2
+
+    cd $GROUP_HOME
+    VERSION="20.04"
+    apptainer build \
+        --bind '/ptmp/thosi/apptainer-build:/tmp' \
+        --force \
+        --notest \
+        --build-arg VERSION=$VERSION \
+        containers/ubuntu-$VERSION.sif \
+        tools/keylab-apptainer-definitions/base/ubuntu.def
+    ```
+
+    Notes
+    -----
+    - requires `apptainer>=1.3`
+    - reads environment variable `APPTAINERENV_TMPDIR`, which is set to `/tmp`
