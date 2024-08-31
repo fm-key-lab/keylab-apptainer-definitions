@@ -1,0 +1,2 @@
+Bootstrap: docker
+From: gchr.io/sanger-pathogens/ariba:latest

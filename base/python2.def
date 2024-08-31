@@ -1,0 +1,13 @@
+Bootstrap: docker
+From: python:2.7.18-slim-stretch
+
+%environment
+    export LANG=en_US.UTF-8
+
+%runscript
+    exec "$@"
+
+%labels
+    Author silvers@mpiib-berlin.mpg.de
+    Version v0.0.1
+    Description "Container with python and pip"

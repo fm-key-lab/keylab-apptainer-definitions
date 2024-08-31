@@ -77,7 +77,7 @@ From: containers/ubuntu-{{ UBUNTU_VERSION }}.sif
         --force \
         --notest \
         containers/aria2.sif \
-        tools/keylab-apptainer-definitions/utils/aria2c.def
+        tools/apptainer-definitions/utils/aria2c.def
     ```
 
     Notes
