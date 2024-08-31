@@ -1,2 +1,15 @@
 Bootstrap: docker
 From: gchr.io/sanger-pathogens/ariba:latest
+
+%environment
+    export ARIBA_BOWTIE2="$GROUP_HOME/opt/bowtie2/2.1.0/bowtie2-2.1.0/bowtie2"
+    export ARIBA_CDHIT="$GROUP_HOME/opt/cdhit/4.8.1/bin/cd-hit-est"
+    export ARIBA_TMPDIR="/tmp"
+
+%runscript
+    exec "$@"
+
+%labels
+    Author silvers@mpiib-berlin.mpg.de
+    Version v0.0.1
+    Description "Container with ARIBA"
