@@ -1,0 +1,10 @@
+Bootstrap: docker
+From: ncbi/magicblast:latest
+
+%runscript
+    exec "$@"
+
+%labels
+    Author silvers@mpiib-berlin.mpg.de
+    Version v0.0.1
+    Description "Container with NCBI Magic-BLAST"
