@@ -12,7 +12,7 @@ From: mambaorg/micromamba:{{ VERSION }}
 
 %post -c /bin/bash
 
-    micromamba install -y -n base -f /environment.yml
+    micromamba install -y -n base -f /env.yml
     micromamba clean --all -y
 
     # Test installation of micromamba

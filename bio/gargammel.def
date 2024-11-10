@@ -1,0 +1,87 @@
+Bootstrap: docker
+From: mambaorg/micromamba:{{ VERSION }}
+
+%arguments
+    VERSION=1.5.8
+
+%files
+    env_files/gargammel.yml env.yml
+
+%environment
+    export PATH="${MAMBA_ROOT_PREFIX}/bin:/opt/gargammel:${PATH}"
+
+%setup
+    mkdir -p $APPTAINER_ROOTFS$APPTAINER_TMPDIR
+
+%post -c /bin/bash
+    set -e
+
+    apt-get update && apt-get -y upgrade
+    
+    apt-get install -y locales
+    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+    locale-gen en_US.UTF-8
+    update-locale LANG=en_US.UTF-8
+
+    apt-get install -y \
+        autoconf \
+        automake \
+        autotools-dev \
+        build-essential \
+        bzip2 \
+        ca-certificates \
+        gettext \
+        gettext-base \
+        git \
+        libglib2.0-0 \
+        libgsl0-dev \
+        libsm6 \
+        libtool \
+        libxext6 \
+        libxrender1 \
+        pkg-config \
+        wget \
+        zlib1g-dev
+    
+    rm -rf /var/lib/apt/lists/*
+    apt-get clean
+
+    micromamba install -y -n base -f /env.yml
+    micromamba clean --all -y
+
+    # Test installation of micromamba
+    /usr/local/bin/_entrypoint.sh micromamba info
+    
+    # Test pip
+    /opt/conda/bin/pip --version
+
+    # Clone and install gargammel
+    cd /opt
+    git clone --recursive  --depth 1 https://github.com/grenaud/gargammel.git
+
+%runscript
+    #!/bin/bash
+
+    source /usr/local/bin/_activate_current_env.sh
+    exec /usr/local/bin/_entrypoint.sh "$@"
+
+%test
+    pip --version
+
+%labels
+    Author thomas silvers
+    Version v0.0.1
+    Description "Apptainer container for mamba environment with gargammel"
+
+%help
+    Apptainer container for mamba environment with gargammel: simulations of ancient DNA datasets.
+    
+    This image can be built using
+    ```bash
+    module purge
+    module load apptainer/1.3.2
+
+    cd $GROUP_HOME/tools/apptainer-definitions/bio
+    apptainer build --notest ../../../containers/gargammel.sif gargammel.def
+    apptainer build --bind /ptmp --notest ../../../containers/gargammel.sif gargammel.def
+    ```
